@@ -5,8 +5,8 @@
 #ifndef XLANG_XLANGER_INCLUDE_XLANGER_XLANGER_H
 #define XLANG_XLANGER_INCLUDE_XLANGER_XLANGER_H
 
-//#include "lex/lex.h"
-#include "parser/parser.h"
-#include "token/token.h"
+#include "xlanger/parser/include_parser.h"
+#include "rule/include_rule.h"
+#include "token/include_token.h"
 
 #endif //XLANG_XLANGER_INCLUDE_XLANGER_XLANGER_H

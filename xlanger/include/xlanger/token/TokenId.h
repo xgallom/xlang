@@ -14,6 +14,15 @@
 namespace xlanger::token
 {
 	using TokenIdType = XLANG_XLANGER_TOKEN_ID_TYPE;
+
+	namespace TokenId
+	{
+		enum Enum : TokenIdType {
+			Invalid = 0,
+			Start,
+			Empty
+		};
+	}
 }
 
 #endif //XLANG_XLANGER_INCLUDE_XLANGER_TOKEN_TOKENID_H

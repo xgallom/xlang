@@ -10,36 +10,42 @@
 
 namespace xlanger::token
 {
-	template<size_t _Size>
+	template<TokenIdType _Size>
 	struct Tokens {
 		static constexpr auto Size = _Size;
 
 		Token tokens[Size] = {};
 
-		[[nodiscard]] constexpr const Token *begin() const { return tokens; }
-		[[nodiscard]] constexpr const Token *end() const { return tokens + Size; }
+		[[nodiscard]] constexpr const Token *begin() const
+		{ return tokens; }
+
+		[[nodiscard]] constexpr const Token *end() const
+		{ return tokens + Size; }
 
 		template<size_t N>
-		[[nodiscard]] constexpr const Token &operator()(const char (&name)[N]) const
+		[[nodiscard]] constexpr TokenIdType operator()(const char (&name)[N]) const
+		{ return index(name); }
+
+		[[nodiscard]] constexpr const Token &operator[](TokenIdType id) const
+		{ return tokens[id]; }
+
+		template<size_t N>
+		[[nodiscard]] constexpr TokenIdType index(const char (&name)[N]) const
 		{
-			for(int n = 0; n < Size; ++n) {
-				if(Compare(tokens[n].nameSize, tokens[n].name, name))
-					return tokens[n];
+			for(TokenIdType n = 0; n < Size; ++n) {
+				if(tokens[n].compare(name))
+					return n;
 			}
+
+			const auto fail = [](int n) -> void { n ? throw std::logic_error("Token name not registered") : 0; };
+
+			fail(1);
+			return TokenId::Invalid;
 		}
 
 		template<size_t N>
-		static constexpr bool Compare(size_t nameSize, const char *name, const char (&key)[N])
-		{
-			if(nameSize != N)
-				return false;
-
-			for(size_t n = 0; n < N; ++n)
-				if(name[n] != key[n])
-					return false;
-
-			return true;
-		}
+		[[nodiscard]] constexpr const Token &at(const char (&name)[N]) const
+		{ return tokens[index(name)]; }
 	};
 }
 

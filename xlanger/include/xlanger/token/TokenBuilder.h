@@ -16,16 +16,16 @@ namespace xlanger::token
 		Token tokens[Size] = {};
 
 		template<size_t TokenSize>
-		[[nodiscard]] constexpr auto terminal(const char (&name)[TokenSize]) const
+		[[nodiscard]] constexpr TokenBuilder<Size + 1> terminal(const char (&name)[TokenSize]) const
 		{ return add<TokenType::Terminal>(name); }
 
 		template<size_t TokenSize>
-		[[nodiscard]] constexpr auto nonTerminal(const char (&name)[TokenSize]) const
+		[[nodiscard]] constexpr TokenBuilder<Size + 1> nonTerminal(const char (&name)[TokenSize]) const
 		{ return add<TokenType::NonTerminal>(name); }
 
-		[[nodiscard]] constexpr Tokens<Size> build() const
+		[[nodiscard]] constexpr Tokens <Size> build() const
 		{
-			Tokens<Size> result = {};
+			Tokens <Size> result = {};
 
 			for(size_t n = 0; n < Size; ++n)
 				result.tokens[n] = tokens[n];
@@ -35,7 +35,7 @@ namespace xlanger::token
 
 	private:
 		friend struct TokenBuilder<Size - 1>;
-		friend constexpr TokenBuilder<3> CreateTokenBuilder();
+		friend constexpr TokenBuilder<4> CreateTokenBuilder();
 
 		constexpr TokenBuilder() = default;
 
@@ -44,8 +44,12 @@ namespace xlanger::token
 		{
 			TokenBuilder<Size + 1> result = {};
 
-			for(size_t n = 0; n < Size; ++n)
+			for(size_t n = 0; n < Size; ++n) {
+				if(tokens[n].compare(name))
+					throw std::logic_error("Duplicate token name");
+
 				result.tokens[n] = tokens[n];
+			}
 
 			result.tokens[Size] = Token{Size, Type, TokenSize, name};
 
@@ -53,12 +57,13 @@ namespace xlanger::token
 		}
 	};
 
-	[[nodiscard]] constexpr TokenBuilder<3> CreateTokenBuilder()
+	[[nodiscard]] constexpr TokenBuilder<4> CreateTokenBuilder()
 	{
 		return TokenBuilder<0>()
-				.terminal("start")
+				.terminal("invalid")
+				.nonTerminal("Start")
 				.terminal("empty")
-				.terminal("invalid");
+				.terminal("end");
 	}
 
 }
