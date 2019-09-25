@@ -3,19 +3,9 @@
 
 int main(int argc, char *argv[])
 {
-	// Implement updates as rule builder functions that add functions
+	// TODO: Implement updates as rule builder functions that add functions
 
-	constexpr auto tokens = xlanger::token::CreateTokenBuilder()/*
-			.nonTerminal("Program")
-			.nonTerminal("Function")
-			.nonTerminal("Statement")
-
-			.terminal("function")
-
-			.terminal("identifier")
-			.terminal("number")
-
-			.terminal(":")*/
+	constexpr auto tokens = xlanger::token::CreateTokenBuilder()
 			.terminal("a")
 			.terminal("b")
 			.terminal("c")
@@ -26,13 +16,7 @@ int main(int argc, char *argv[])
 
 			.build();
 
-	constexpr auto rules = xlanger::rule::CreateRuleBuilder(tokens)/*
-			.rule("Start", "Program", "end")
-
-			.rule("Program", "Program", "Function")
-			.rule("Program", "empty")
-
-			.rule("Function", "function", "identifier", ":", "Statement")*/
+	constexpr auto rules = xlanger::rule::CreateRuleBuilder(tokens)
 			.rule("Start", "S")
 
 			.rule("S", "a", "A", "c")
@@ -42,7 +26,7 @@ int main(int argc, char *argv[])
 
 			.build();
 
-	constexpr auto nfaBuilder = xlanger::rule::CreateNFABuilder(tokens, rules);
+	constexpr auto nfa = xlanger::rule::CreateNFA(tokens, rules);
 
 	std::cout << "tokens:\n";
 	for(const auto &token : tokens)
@@ -58,7 +42,7 @@ int main(int argc, char *argv[])
 
 	std::cout << "\nNFA:\n";
 	std::cout << "  rules:\n";
-	for(const auto &rule : nfaBuilder.rules) {
+	for(const auto &rule : nfa.rules) {
 		if(rule.id == xlanger::rule::RuleId::Invalid)
 			continue;
 
@@ -72,7 +56,7 @@ int main(int argc, char *argv[])
 
 		if(rule.transitionsCount) {
 			for(int t = 0; t < rule.transitionsCount; ++t) {
-				const auto &destination = nfaBuilder.rules[rule.transitions[t].transition];
+				const auto &destination = nfa.rules[rule.transitions[t].transition];
 				std::cout << "      " << tokens[rule.transitions[t].transferToken].name << " -> "
 						  << destination.id << "\n";
 			}
@@ -80,8 +64,8 @@ int main(int argc, char *argv[])
 	}
 
 	std::cout << "  roots:\n";
-	for(const auto &root : nfaBuilder.roots)
-		std::cout << "    " << nfaBuilder.rules[root].id << "\n";
+	for(const auto &root : nfa.roots)
+		std::cout << "    " << nfa.rules[root].id << "\n";
 
 	return 0;
 }

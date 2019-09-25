@@ -63,7 +63,7 @@ namespace xlanger::token
 				.terminal("invalid")
 				.nonTerminal("Start")
 				.terminal("empty")
-				.terminal("end");
+				.terminal("end"); // TODO: Decide
 	}
 
 }

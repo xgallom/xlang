@@ -16,6 +16,7 @@ namespace xlanger::rule
 
 		token::Tokens <TokensSize> tokens = {};
 		rule::Rule rules[Size] = {};
+		bool hasStart = false;
 
 		template<size_t LhsSize, size_t ... RhsSizes>
 		constexpr RuleBuilder<TokensSize, Size + 1> rule(
@@ -30,7 +31,20 @@ namespace xlanger::rule
 			if(!tokens[lhsToken].isNonTerminal())
 				throw std::logic_error("Left hand side must be a non terminal");
 
-			return add(Rule{Size, lhsToken, sizeof...(RhsSizes), {tokens(rhs) ...}});
+			bool newHasStart = hasStart;
+
+			if(lhsToken == token::TokenId::Start) {
+				if(hasStart)
+					throw std::logic_error("Only one rule can produce a Start token");
+				else
+					newHasStart = true;
+			}
+			else {
+				if constexpr(!Size)
+					throw std::logic_error("First rule must produce a Start token");
+			}
+
+			return add(Rule{Size, lhsToken, sizeof...(RhsSizes), {tokens(rhs) ...}}, newHasStart);
 		}
 
 		template<size_t ... RhsSizes>
@@ -39,12 +53,20 @@ namespace xlanger::rule
 			static_assert(sizeof...(RhsSizes), "Empty right hand side of a rule");
 			static_assert(Size > 0, "Can not create or rule from an empty rule set");
 
-			return add(Rule{Size, rules[Size - 1].lhs, sizeof...(RhsSizes), {tokens(rhs) ...}});
+			const auto lhsToken = rules[Size - 1].lhs;
+
+			if(lhsToken == token::TokenId::Start && hasStart)
+					throw std::logic_error("Only one rule can produce a Start token");
+
+			return add(Rule{Size, lhsToken, sizeof...(RhsSizes), {tokens(rhs) ...}}, hasStart);
 		}
 
 		constexpr Rules <Size> build() const
 		{
 			Rules <Size> result = {};
+
+			if(!hasStart)
+				throw std::logic_error("Rule set does not produce a Start token");
 
 			for(size_t n = 0; n < Size; ++n)
 				result.rules[n] = rules[n];
@@ -52,18 +74,18 @@ namespace xlanger::rule
 			return result;
 		}
 
-		[[nodiscard]] static constexpr RuleBuilder<TokensSize, 0> Create(const token::Tokens <TokensSize> &tokens)
-		{ return RuleBuilder<TokensSize, 0>{tokens}; }
-
 	private:
 		friend struct RuleBuilder<TokensSize, Size - 1>;
+
+		template<token::TokenIdType ATokensSize>
+		friend constexpr RuleBuilder<ATokensSize, 0> CreateRuleBuilder(const token::Tokens <ATokensSize> &tokens);
 
 		constexpr RuleBuilder() = default;
 
 		explicit constexpr RuleBuilder(token::Tokens <TokensSize> tokens) : tokens{tokens}
 		{}
 
-		constexpr RuleBuilder<TokensSize, Size + 1> add(const Rule &rule) const
+		constexpr RuleBuilder<TokensSize, Size + 1> add(const Rule &rule, bool newHasStart) const
 		{
 			RuleBuilder<TokensSize, Size + 1> result = {};
 			result.tokens = tokens;
@@ -76,6 +98,7 @@ namespace xlanger::rule
 			}
 
 			result.rules[Size] = rule;
+			result.hasStart = newHasStart;
 
 			return result;
 		}
@@ -83,7 +106,7 @@ namespace xlanger::rule
 
 	template<token::TokenIdType TokensSize>
 	[[nodiscard]] constexpr RuleBuilder<TokensSize, 0> CreateRuleBuilder(const token::Tokens <TokensSize> &tokens)
-	{ return RuleBuilder<TokensSize, 0>::Create(tokens); }
+	{ return RuleBuilder<TokensSize, 0>{tokens}; }
 }
 
 #endif //XLANG_ROOT_XLANGER_INCLUDE_XLANGER_RULE_RULEBUILDER_H
