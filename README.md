@@ -58,4 +58,4 @@ make install
 
 ## License
 
-XLanger library and the XLang compiler are distributed under the MIT license available [here](LICENSE.md).
+XLanger library and the XLang compiler are distributed under the MIT license available [here](LICENSE).
