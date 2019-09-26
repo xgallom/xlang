@@ -75,7 +75,7 @@ namespace xlanger::rule
 		}
 
 	private:
-		friend struct RuleBuilder<TokensSize, Size - 1>;
+		friend struct RuleBuilder<TokensSize, Size ? Size - 1 : 1>;
 
 		template<token::TokenIdType ATokensSize>
 		friend constexpr RuleBuilder<ATokensSize, 0> CreateRuleBuilder(const token::Tokens <ATokensSize> &tokens);

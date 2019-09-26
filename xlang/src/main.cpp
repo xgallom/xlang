@@ -1,5 +1,6 @@
 #include <iostream>
 #include <xlanger/xlanger.h>
+#include <vector>
 
 int main(int argc, char *argv[])
 {
@@ -12,7 +13,13 @@ int main(int argc, char *argv[])
 			.terminal("d")
 
 			.nonTerminal("A")
-			.nonTerminal("S")
+			.nonTerminal("S")/*
+
+			.terminal("number")
+			.terminal("+")
+			.terminal("-")
+
+			.nonTerminal("Expr")*/
 
 			.build();
 
@@ -22,7 +29,13 @@ int main(int argc, char *argv[])
 			.rule("S", "a", "A", "c")
 			.orRhs("b", "A", "d", "d")
 
-			.rule("A", "b")
+			.rule("A", "b")/*
+
+			.rule("Start", "Expr")
+
+			.rule("Expr", "number")
+			.rule("Expr", "Expr", "+", "Expr")
+			.rule("Expr", "Expr", "-", "Expr")*/
 
 			.build();
 
@@ -30,7 +43,7 @@ int main(int argc, char *argv[])
 
 	std::cout << "tokens:\n";
 	for(const auto &token : tokens)
-		std::cout << "  " << int(token.id) << ": " << token.type << " " << token.name << "[" << token.nameSize << "]\n";
+		std::cout << "  " << int(token.id) << ": " << token.type << " " << token.name << "\n";
 
 	std::cout << "\nrules:\n";
 	for(const auto &rule : rules) {
@@ -66,6 +79,66 @@ int main(int argc, char *argv[])
 	std::cout << "  roots:\n";
 	for(const auto &root : nfa.roots)
 		std::cout << "    " << nfa.rules[root].id << "\n";
+
+	xlanger::token::Tokens<4> string = {
+			tokens.at("b"),
+			tokens.at("b"),
+			tokens.at("d"),
+			tokens.at("d")
+	};
+
+	struct Stack {
+		std::vector<xlanger::rule::RuleIdType> ruleStack = {};
+		xlanger::token::TokenIdType currentToken = 0;
+
+		bool tryContinue(const xlanger::token::Tokens<4> &string,
+				const xlanger::rule::NFA<10, 4> &nfa,
+				std::vector<Stack> &children
+				) {
+			const auto &token = string[currentToken++];
+
+			if(currentToken == ) // TODO: Finished here
+
+			const auto &rule = nfa.rules[ruleStack.back()];
+
+			for(xlanger::rule::RuleIdType t = 0; t < rule.transitionsCount; ++t) {
+				const auto &transition = rule.transitions[t];
+
+				xlanger::token::TokenIdType transitionToken = transition.transferToken;
+
+				if(transitionToken == xlanger::token::TokenId::Empty)
+					transitionToken = nfa.rules[transitionToken].lhs;
+
+				if(transitionToken == token.id) {
+					auto newChild = *this;
+					newChild.ruleStack.push_back(transition.transition);
+					children.push_back(newChild);
+				}
+			}
+
+			return false;
+		}
+	};
+
+	std::cout << "\n";
+	std::vector<Stack> stacks = {Stack{}};
+	for(;;) {
+		if(stacks.empty())
+			break;
+
+		std::vector<Stack> children = {};
+		for(auto &stack : stacks) {
+			if(stack.tryContinue(string, nfa, children))
+				break;
+		}
+
+		stacks = children;
+	}
+
+	std::cout << "\nStacks: " << stacks.size() << "\n";
+	for(const auto &stack : stacks) {
+		std::cout << "  " << stack.ruleStack
+	}
 
 	return 0;
 }
